@@ -23,8 +23,6 @@ public class ChatController {
 
   @PostMapping("/messages")
   public Flux<ServerSentEvent<String>> streamLastMessage(@RequestBody String message) {
-    return chatService.chatStream(message).map(mes -> ServerSentEvent.<String>builder()
-        .data(mes)
-        .build());
+    return chatService.chatStream(message);
   }
 }

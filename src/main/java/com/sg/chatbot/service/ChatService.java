@@ -1,5 +1,6 @@
 package com.sg.chatbot.service;
 
+import org.springframework.http.codec.ServerSentEvent;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
@@ -14,7 +15,7 @@ import reactor.core.publisher.Sinks;
 @Service
 public class ChatService {
 
-  private String openaiApiKey = "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";
+  private String openaiApiKey = "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";
   private Assistant assistant;
   private StreamingAssistant streamingAssistant;
 
@@ -50,7 +51,7 @@ public class ChatService {
     return assistant.chat(message);
   }
 
-  public Flux<String> chatStream(String message) {
+  public Flux<ServerSentEvent<String>> chatStream(String message) {
     Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
 
     streamingAssistant.chat(message)
@@ -59,6 +60,9 @@ public class ChatService {
         .onError(sink::tryEmitError)
         .start();
 
-    return sink.asFlux();
+    return sink.asFlux().map(mes -> ServerSentEvent.<String>builder()
+        .event("chat")      
+        .data(mes)
+        .build());
   }
 }
